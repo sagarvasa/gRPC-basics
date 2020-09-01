@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package calc;
+option go_package = "calc_pb;calcpb";
+
+message sumRequest {
+    int32 number1 = 1;
+    int32 number2 = 2;
+}
+
+message sumResponse {
+    int64 sum = 1;
+}
+
+message diffRequest {
+    float number1 = 1;
+    float number2 = 2;
+}
+
+message diffResponse {
+    float difference = 1;
+}
+
+message multiplierRequest {
+    float number1 = 1;
+    float number2 = 2;
+    float number3 = 3;
+}
+
+message multiplierResponse {
+    float resp = 1;
+}
+
+service calculatorService {
+    // Unary
+    rpc doSum(sumRequest) returns (sumResponse) {};
+    rpc calcDiff(diffRequest) returns (diffResponse) {};
+    rpc multiply(multiplierRequest) returns (multiplierResponse) {};
+}
+
