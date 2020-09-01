@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	calcpb "github.com/gRPC-basics/calc_pb"
@@ -20,7 +21,8 @@ func main() {
 	defer conn.Close()
 
 	client := calcpb.NewCalculatorServiceClient(conn)
-	doUnary(client)
+	//doUnary(client)
+	doServerStreaming(client)
 }
 
 func doUnary(c calcpb.CalculatorServiceClient) {
@@ -33,7 +35,7 @@ func doUnary(c calcpb.CalculatorServiceClient) {
 	if err != nil {
 		fmt.Println("Error in DoSum ", err)
 	}
-	log.Printf("Output of DoSum: %v", resp.Sum)
+	log.Printf("Output of DoSum: %v", resp.GetSum())
 
 	/* Position of field in struct can be modified */
 	DiffResp, err := c.CalcDiff(context.Background(), &calcpb.DiffRequest{
@@ -53,6 +55,30 @@ func doUnary(c calcpb.CalculatorServiceClient) {
 	if err != nil {
 		fmt.Println("Error in Multiply ", err)
 	}
-	log.Printf("output of Multiply: %v", mul.Resp)
+	log.Printf("output of Multiply: %v", mul.GetResp())
+
+}
+
+func doServerStreaming(c calcpb.CalculatorServiceClient) {
+	req := &calcpb.GigaByteRequest{
+		GbValue: "2",
+	}
+
+	stream, err := c.GetByteValues(context.Background(), req)
+	if err != nil {
+		fmt.Printf("Server Stream Error %v\n", err)
+	}
+
+	for {
+		val, err := stream.Recv()
+		if err == io.EOF {
+			fmt.Println(`Calculation complete for Server Streaming`)
+			break
+		}
+		if err != nil {
+			fmt.Printf("Stream Error %v\n", err)
+		}
+		fmt.Println(`Receiving Values from Server:  `, val.GetResp())
+	}
 
 }
