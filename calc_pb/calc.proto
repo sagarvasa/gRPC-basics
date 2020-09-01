@@ -31,10 +31,21 @@ message multiplierResponse {
     float resp = 1;
 }
 
+message gigaByteRequest {
+    string gbValue = 1;
+}
+
+message gigaByteResponse {
+    string resp = 1;
+}
+
 service calculatorService {
     // Unary
     rpc doSum(sumRequest) returns (sumResponse) {};
     rpc calcDiff(diffRequest) returns (diffResponse) {};
     rpc multiply(multiplierRequest) returns (multiplierResponse) {};
+
+    // Server Streaming
+    rpc getByteValues(gigaByteRequest) returns (stream gigaByteResponse) {};
 }
 

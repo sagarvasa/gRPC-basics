@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"net"
+	"strconv"
+	"time"
 
 	calcpb "github.com/gRPC-basics/calc_pb"
 	"google.golang.org/grpc"
@@ -48,6 +51,27 @@ func (*server) Multiply(ctx context.Context, req *calcpb.MultiplierRequest) (*ca
 
 	return res, nil
 
+}
+
+func (*server) GetByteValues(req *calcpb.GigaByteRequest, stream calcpb.CalculatorService_GetByteValuesServer) error {
+	fmt.Println("In GetByteValues Method")
+	gbValue, _ := strconv.ParseFloat(req.GbValue, 64)
+	gbValue = gbValue * (math.Pow(2, 30))
+
+	for gbValue > 1 {
+
+		gbValue = gbValue / (math.Pow(2, 5))
+
+		err := stream.Send(&calcpb.GigaByteResponse{
+			Resp: strconv.FormatFloat(gbValue, 'f', 2, 64),
+		})
+		if err != nil {
+			fmt.Printf("Error in Conversion: %v\n", err)
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil
 }
 
 func main() {

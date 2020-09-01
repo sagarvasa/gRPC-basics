@@ -21,7 +21,7 @@ func main() {
 	defer conn.Close()
 
 	client := calcpb.NewCalculatorServiceClient(conn)
-	//doUnary(client)
+	doUnary(client)
 	doServerStreaming(client)
 }
 
