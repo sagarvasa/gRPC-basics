@@ -57,13 +57,15 @@ func (*server) GetByteValues(req *calcpb.GigaByteRequest, stream calcpb.Calculat
 	fmt.Println("In GetByteValues Method")
 	gbValue, _ := strconv.ParseFloat(req.GbValue, 64)
 	gbValue = gbValue * (math.Pow(2, 30))
+	multiplier := 1.0
 
 	for gbValue > 1 {
 
 		gbValue = gbValue / (math.Pow(2, 5))
+		multiplier = multiplier * (math.Pow(2, 5))
 
 		err := stream.Send(&calcpb.GigaByteResponse{
-			Resp: strconv.FormatFloat(gbValue, 'f', 2, 64),
+			Resp: (strconv.FormatFloat(gbValue, 'f', 2, 64) + " Multiply by --> " + strconv.FormatFloat(multiplier, 'f', 2, 64)),
 		})
 		if err != nil {
 			fmt.Printf("Error in Conversion: %v\n", err)
