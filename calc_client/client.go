@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	calcpb "github.com/gRPC-basics/calc_pb"
 	"google.golang.org/grpc"
@@ -23,9 +24,13 @@ func main() {
 	client := calcpb.NewCalculatorServiceClient(conn)
 	doUnary(client)
 	doServerStreaming(client)
+	doClientStreaming(client)
 }
 
 func doUnary(c calcpb.CalculatorServiceClient) {
+	fmt.Println(`*********************`)
+	fmt.Println(`Unary`)
+	fmt.Println(`*********************`)
 	req := &calcpb.SumRequest{
 		Number1: 20,
 		Number2: 10,
@@ -60,6 +65,9 @@ func doUnary(c calcpb.CalculatorServiceClient) {
 }
 
 func doServerStreaming(c calcpb.CalculatorServiceClient) {
+	fmt.Println(`*********************`)
+	fmt.Println(`Server Streaming`)
+	fmt.Println(`*********************`)
 	req := &calcpb.GigaByteRequest{
 		GbValue: "2",
 	}
@@ -80,5 +88,34 @@ func doServerStreaming(c calcpb.CalculatorServiceClient) {
 		}
 		fmt.Println(`Receiving Values from Server:  `, val.GetResp())
 	}
+
+}
+
+func doClientStreaming(c calcpb.CalculatorServiceClient) {
+	fmt.Println(`*********************`)
+	fmt.Println(`Client Streaming`)
+	fmt.Println(`*********************`)
+
+	stream, err := c.AddAllNumbers(context.Background())
+	if err != nil {
+		fmt.Printf("Client Stream Error %v\n", err)
+	}
+
+	numbers := make([]float32, 0)
+	for i := 0; i < 5; i++ {
+		numbers = append(numbers, float32(i))
+	}
+	for _, number := range numbers {
+		stream.Send(&calcpb.AddSumRequest{
+			StreamNo: number,
+		})
+		fmt.Println("Req: Stream Value: ", number)
+		time.Sleep(1 * time.Second)
+	}
+	val, err := stream.CloseAndRecv()
+	if err != nil {
+		fmt.Printf("Stream Error %v\n", err)
+	}
+	fmt.Println(`Calculated Sum from Server:  `, val.GetSum())
 
 }

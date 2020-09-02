@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"net"
@@ -54,7 +55,9 @@ func (*server) Multiply(ctx context.Context, req *calcpb.MultiplierRequest) (*ca
 }
 
 func (*server) GetByteValues(req *calcpb.GigaByteRequest, stream calcpb.CalculatorService_GetByteValuesServer) error {
+	fmt.Println("********************")
 	fmt.Println("In GetByteValues Method")
+	fmt.Println("********************")
 	gbValue, _ := strconv.ParseFloat(req.GbValue, 64)
 	gbValue = gbValue * (math.Pow(2, 30))
 	multiplier := 1.0
@@ -74,6 +77,27 @@ func (*server) GetByteValues(req *calcpb.GigaByteRequest, stream calcpb.Calculat
 	}
 
 	return nil
+}
+
+func (*server) AddAllNumbers(stream calcpb.CalculatorService_AddAllNumbersServer) error {
+	fmt.Println("********************")
+	fmt.Println("In AddAllNumbers Method: Client Streaming")
+	fmt.Println("********************")
+	var sum float32 = 0.0
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return stream.SendAndClose(&calcpb.AddSumResponse{
+				Sum: sum,
+			})
+		}
+		if err != nil {
+			fmt.Printf("Error in adding all numbers: %v\n", err)
+		}
+		sum += req.GetStreamNo()
+	}
+
 }
 
 func main() {

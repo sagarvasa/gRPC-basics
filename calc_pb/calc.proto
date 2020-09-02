@@ -39,6 +39,14 @@ message gigaByteResponse {
     string resp = 1;
 }
 
+message addSumRequest {
+    float streamNo = 1;
+}
+
+message addSumResponse {
+    float sum = 1;
+}
+
 service calculatorService {
     // Unary
     rpc doSum(sumRequest) returns (sumResponse) {};
@@ -47,5 +55,8 @@ service calculatorService {
 
     // Server Streaming
     rpc getByteValues(gigaByteRequest) returns (stream gigaByteResponse) {};
+
+    // Client Streaming
+    rpc addAllNumbers(stream addSumRequest) returns (addSumResponse) {};
 }
 
