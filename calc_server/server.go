@@ -100,6 +100,41 @@ func (*server) AddAllNumbers(stream calcpb.CalculatorService_AddAllNumbersServer
 
 }
 
+func (*server) FindMaximum(stream calcpb.CalculatorService_FindMaximumServer) error {
+	fmt.Println("********************")
+	fmt.Println("In FindMaximum Method: BiDirectional Streaming")
+	fmt.Println("********************")
+
+	maximum := int32(0)
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			fmt.Printf("Error in recieving stream: %v\n", err)
+			return nil
+		}
+
+		number := req.GetNumber()
+		if number > maximum {
+			maximum = number
+			sendErr := stream.Send(&calcpb.FindMaximumResponse{
+				Max: maximum,
+			})
+
+			if sendErr != nil {
+				fmt.Printf("Error in Sending stream: %v\n", sendErr)
+				return sendErr
+			}
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+}
+
 func main() {
 	fmt.Println("Starting Server")
 

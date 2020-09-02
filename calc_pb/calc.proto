@@ -47,6 +47,14 @@ message addSumResponse {
     float sum = 1;
 }
 
+message findMaximumRequest {
+    int32 number = 1;
+}
+
+message findMaximumResponse {
+    int32 max = 1;
+}
+
 service calculatorService {
     // Unary
     rpc doSum(sumRequest) returns (sumResponse) {};
@@ -58,5 +66,8 @@ service calculatorService {
 
     // Client Streaming
     rpc addAllNumbers(stream addSumRequest) returns (addSumResponse) {};
+
+    // BiDirection Streaming
+    rpc findMaximum(stream findMaximumRequest) returns (stream findMaximumResponse) {};
 }
 

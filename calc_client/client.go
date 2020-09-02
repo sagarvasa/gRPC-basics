@@ -25,6 +25,7 @@ func main() {
 	doUnary(client)
 	doServerStreaming(client)
 	doClientStreaming(client)
+	doBiDiStreaming(client)
 }
 
 func doUnary(c calcpb.CalculatorServiceClient) {
@@ -117,5 +118,54 @@ func doClientStreaming(c calcpb.CalculatorServiceClient) {
 		fmt.Printf("Stream Error %v\n", err)
 	}
 	fmt.Println(`Calculated Sum from Server:  `, val.GetSum())
+
+}
+
+func doBiDiStreaming(c calcpb.CalculatorServiceClient) {
+	fmt.Println(`*********************`)
+	fmt.Println(`Client Streaming`)
+	fmt.Println(`*********************`)
+
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		fmt.Printf("BiDi Stream Error %v\n", err)
+	}
+
+	// create wait channel
+	waitCh := make(chan struct{})
+
+	// send go routines
+	go func() {
+		numbers := []int32{2, 7, 7, 4, 9, 19, 5}
+		for _, number := range numbers {
+			fmt.Println("Sending Value: ", number)
+			stream.Send(&calcpb.FindMaximumRequest{
+				Number: number,
+			})
+			time.Sleep(500 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	// receive go routines
+	go func() {
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				fmt.Printf("Error in Receiving Values %v \n", err)
+				break
+			}
+
+			fmt.Println("Received New Maximum Value: ", resp.GetMax())
+
+		}
+		close(waitCh)
+	}()
+
+	<-waitCh
 
 }
