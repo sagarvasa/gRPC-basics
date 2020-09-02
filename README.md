@@ -1,12 +1,12 @@
 # gRPC-basics
 1. gRPC is free and open source framework developed by google.
-2. At high level, gRPC allow us to define REQUEST & RESPONSE for RPC (Remote Procedure Calls) and handle all the rest for us.
+2. At a high level, gRPC allows us to define REQUEST & RESPONSE for RPC (Remote Procedure Calls) and handle all the rest for us.
 3. On top of it, 
     a) it's modern, fast and efficient 
     b) build on a top of HTTP/2
     c) low latency, supports streaming, language independent and makes it super easy to plug in authentication, load balancing, logging & monitoring.
 4. At the core of gRPC we need to define messages and services using Protocol Buffers
-(One .proto file works over multiple programming language (including client & server) and allow to use a framework that scales to millions of RPC per second)
+(A Single proto file works over multiple programming language (including client & server) and allow to use a framework that scales to millions of RPC per second)
 
 # Types of API in gRPC
 1. Unary (like traditional API)
@@ -52,6 +52,8 @@ HTTP/2 is binary and by default SSL enabled (Secured)
     It is resource oriented (GET/POST/PUT/DELETE)
 
 # Project Setup
-1. install golang from `https://golang.org/doc/install` or using homebrew (on mac)
-2. make sure go binaries are on path. Check version using `go version`
+1. Install golang from `https://golang.org/doc/install` or using homebrew (on mac)
+2. Make sure go binaries are on path. Check version using `go version`
 3. In order to perform code generation, we need to install `protoc` on system. Use `brew install protobuf` for mac
+4. Clone/Fork the Repo & run shell command `sh generate.sh` from root of the project
+5. Run `go run server.go` from calc_server folder & run `go run client.go` from calc_client folder
