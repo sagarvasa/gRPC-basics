@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package err;
+option go_package = "error_pb;errpb";
+
+message divideRequest {
+    float number1 = 1;
+    float number = 2;
+}
+
+message divideResponse {
+    float answer = 1;
+}
+
+message pingRequest {
+    string word = 1;
+}
+
+message pingResponse {
+    string response = 1;
+}
+
+service MiscService {
+    rpc divide(divideRequest) returns (divideResponse) {}
+    rpc divideWithError(divideRequest) returns (divideResponse) {}
+    rpc ping(pingRequest) returns (pingResponse) {}
+}

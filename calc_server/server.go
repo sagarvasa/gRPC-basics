@@ -11,7 +11,10 @@ import (
 	"time"
 
 	calcpb "github.com/gRPC-basics/calc_pb"
+	errpb "github.com/gRPC-basics/error_pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct{}
@@ -135,6 +138,59 @@ func (*server) FindMaximum(stream calcpb.CalculatorService_FindMaximumServer) er
 
 }
 
+func (*server) Divide(ctx context.Context, req *errpb.DivideRequest) (*errpb.DivideResponse, error) {
+	number1 := req.GetNumber1()
+	number2 := req.GetNumber()
+	resp := number1 / number2
+
+	res := &errpb.DivideResponse{
+		Answer: resp,
+	}
+	return res, nil
+}
+
+func (*server) DivideWithError(ctx context.Context, req *errpb.DivideRequest) (*errpb.DivideResponse, error) {
+	fmt.Println("********************")
+	fmt.Println("In DivideWithError Method: Error handling")
+	fmt.Println("********************")
+	number1 := req.GetNumber1()
+	number2 := req.GetNumber()
+
+	if number2 == 0 {
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"Divider Can not be zero",
+		)
+	}
+
+	resp := number1 / number2
+
+	res := &errpb.DivideResponse{
+		Answer: resp,
+	}
+	return res, nil
+
+}
+
+func (*server) Ping(ctx context.Context, req *errpb.PingRequest) (*errpb.PingResponse, error) {
+	fmt.Println("********************")
+	fmt.Println("In Ping Method: Error handling")
+	fmt.Println("********************")
+
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			return nil, status.Error(codes.Canceled, "Client has cancelled the request")
+		}
+		time.Sleep(1 * time.Second) // Sleeping for 3 Secs
+	}
+
+	word := req.GetWord()
+	resp := &errpb.PingResponse{
+		Response: "Acknowledged the word: " + word,
+	}
+	return resp, nil
+}
+
 func main() {
 	fmt.Println("Starting Server")
 
@@ -145,6 +201,7 @@ func main() {
 
 	s := grpc.NewServer()
 	calcpb.RegisterCalculatorServiceServer(s, &server{})
+	errpb.RegisterMiscServiceServer(s, &server{})
 	if err = s.Serve(listener); err != nil {
 		log.Fatalf("Failed to Serve: %v", err)
 	}

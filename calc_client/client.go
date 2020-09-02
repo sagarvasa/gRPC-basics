@@ -7,7 +7,12 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
+	"google.golang.org/grpc/status"
+
 	calcpb "github.com/gRPC-basics/calc_pb"
+	errorpb "github.com/gRPC-basics/error_pb"
 	"google.golang.org/grpc"
 )
 
@@ -22,10 +27,14 @@ func main() {
 	defer conn.Close()
 
 	client := calcpb.NewCalculatorServiceClient(conn)
+	errClient := errorpb.NewMiscServiceClient(conn)
 	doUnary(client)
 	doServerStreaming(client)
 	doClientStreaming(client)
 	doBiDiStreaming(client)
+	doDivideErrorHandling(errClient)
+	doPingWithDeadline(errClient, 5*time.Second)
+	doPingWithDeadline(errClient, 2*time.Second)
 }
 
 func doUnary(c calcpb.CalculatorServiceClient) {
@@ -168,4 +177,59 @@ func doBiDiStreaming(c calcpb.CalculatorServiceClient) {
 
 	<-waitCh
 
+}
+
+func doDivideErrorHandling(client errorpb.MiscServiceClient) {
+	fmt.Println(`*********************`)
+	fmt.Println(`Divide by Zero : Error Handling`)
+	fmt.Println(`*********************`)
+
+	resp, err := client.DivideWithError(context.Background(), &errorpb.DivideRequest{
+		Number1: 10,
+		Number:  0,
+	})
+	if err != nil {
+
+		status, ok := status.FromError(err)
+		if ok {
+			fmt.Println("Error message from server: ", status.Message())
+			fmt.Println("Error code from server: ", status.Code())
+		} else {
+			fmt.Printf("Error in DivideErrorHandling: %v \n", err)
+		}
+		return
+	}
+
+	fmt.Println("Output of DivideErrorHandling: ", resp.GetAnswer())
+
+}
+
+func doPingWithDeadline(client errorpb.MiscServiceClient, timeout time.Duration) {
+	fmt.Println(`*********************`)
+	fmt.Printf("Ping With Deadline : Error Handling with timeout: %v\n", timeout)
+	fmt.Println(`*********************`)
+
+	req := &errorpb.PingRequest{
+		Word: "ping.....",
+	}
+
+	ctx, cancelFun := context.WithTimeout(context.Background(), timeout)
+	defer cancelFun()
+
+	resp, err := client.Ping(ctx, req)
+	if err != nil {
+		status, ok := status.FromError(err)
+		if ok {
+			if status.Code() == codes.DeadlineExceeded {
+				fmt.Println("Message: ", status.Message())
+			} else {
+				fmt.Println("Error message from server: ", status.Message())
+				fmt.Println("Error code from server: ", status.Code())
+			}
+		} else {
+			fmt.Printf("Error in DivideErrorHandling: %v \n", err)
+		}
+		return
+	}
+	fmt.Println("Output of doPingWithDeadline: ", resp.GetResponse())
 }
